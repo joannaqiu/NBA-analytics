@@ -1,0 +1,545 @@
+# Clutch Time Analysis
+dat0809 <- read.csv("~/Desktop/merged.csv",stringsAsFactors=FALSE)
+
+# Add game number to all games
+count <- 1
+for (i in 1:512169){
+  dat0809$gameno[i] <- count
+  if (dat0809$period[i] == "period"){
+    count <- count+1
+  }
+}
+
+# clean and reformat some data
+dat0809$time <- strptime(dat0809$time,"%M:%S")
+ndat0809 <- dat0809[dat0809$period !="period",]
+ndat0809$points <- as.numeric(ndat0809$points)
+ndat0809$points[(is.na(ndat0809$points))] <- 0
+
+# get the final scores for each team in each game
+score <- tapply(ndat0809$points,list(ndat0809$team,ndat0809$gameno),sum)
+
+# create a table with the final scores
+teamf <- matrix(0,1176,2)
+for (i in 1:1176){
+  for (j in 1:31){
+    if (!is.na(score[j,i]) && score[j,i] != 0)
+      if (teamf[i,1] == 0)
+        teamf[i,1] <- score[j,i]
+    else
+      teamf[i,2] <- score[j,i]
+  }
+}
+
+# subset the data to not including the last 7 min
+dat07 <- ndat0809[ndat0809$period != 4 | (ndat0809$period == 4 & ndat0809$time > strptime("07:00","%M:%S")),]
+
+# get the score in the last 7 min
+score07 <- tapply(dat07$points,list(dat07$team,dat07$gameno),sum)
+
+# create a table to store the last 7 min scores
+team07 <- matrix(0,1176,2)
+for (i in 1:1176){
+  for (j in 1:31){
+    if (!is.na(score07[j,i]) && score07[j,i] != 0)
+      if (team07[i,1] == 0)
+        team07[i,1] <- score07[j,i]
+    else
+      team07[i,2] <- score07[j,i]
+  }
+}
+
+# combine the final score and last 7 min score into one table
+test <- cbind(teamf,team07)
+test <- data.frame(test)
+
+# create two new variables as the two score differences
+test$score.diff07 <- test$X3-test$X4
+test$score.diff <- test$X1-test$X2
+
+# create new variables as indicators if the trailing team wins the game
+for (k in 1:7){
+  for (i in 1:1176){
+    if ((test$score.diff[i] > 0 & test$score.diff07[i] == -k) | (test$score.diff[i] < 0 & test$score.diff07[i] == k))
+      test[i,k+6] <- 1
+    else
+      test[i,k+6] <- 0
+  }
+}
+
+# Find the proportion of games won by trailing team by score difference
+prop07 <- numeric(0)
+for (i in 7:13){
+  prop07 <- c(prop07,sum(test[,i])/length(which(abs(test$score.diff07) == i-6)))
+}
+
+# The following code works the same way as in the 7 min case. We worked on 7,6,5,4,3,2 and 1 min.
+dat06 <- ndat0809[ndat0809$period != 4 | (ndat0809$period == 4 & ndat0809$time > strptime("06:00","%M:%S")),]
+score06 <- tapply(dat06$points,list(dat06$team,dat06$gameno),sum)
+
+team06 <- matrix(0,1176,2)
+for (i in 1:1176){
+   for (j in 1:31){
+     if (!is.na(score06[j,i]) && score06[j,i] != 0)
+       if (team06[i,1] == 0)
+         team06[i,1] <- score06[j,i]
+       else
+         team06[i,2] <- score06[j,i]
+   }
+}
+
+test <- cbind(teamf,team06)
+test <- data.frame(test)
+test$score.diff06 <- test$X3-test$X4
+test$score.diff <- test$X1-test$X2
+
+for (k in 1:7){
+  for (i in 1:1176){
+   if ((test$score.diff[i] > 0 & test$score.diff06[i] == -k) | (test$score.diff[i] < 0 & test$score.diff06[i] == k))
+      test[i,k+6] <- 1
+   else
+      test[i,k+6] <- 0
+  }
+}
+
+prop06 <- numeric(0)
+for (i in 7:13){
+  prop06 <- c(prop06,sum(test[,i])/length(which(abs(test$score.diff06) == i-6)))
+}
+
+dat05 <- ndat0809[ndat0809$period != 4 | (ndat0809$period == 4 & ndat0809$time > strptime("05:00","%M:%S")),]
+score05 <- tapply(dat05$points,list(dat05$team,dat05$gameno),sum)
+
+team05 <- matrix(0,1176,2)
+for (i in 1:1176){
+  for (j in 1:31){
+    if (!is.na(score05[j,i]) && score05[j,i] != 0)
+      if (team05[i,1] == 0)
+        team05[i,1] <- score05[j,i]
+    else
+      team05[i,2] <- score05[j,i]
+  }
+}
+
+test <- cbind(teamf,team05)
+test <- data.frame(test)
+test$score.diff05 <- test$X3-test$X4
+test$score.diff <- test$X1-test$X2
+
+for (k in 1:7){
+  for (i in 1:1176){
+    if ((test$score.diff[i] > 0 & test$score.diff05[i] == -k) | (test$score.diff[i] < 0 & test$score.diff05[i] == k)) 
+      test[i,k+6] <- 1
+    else
+      test[i,k+6] <- 0
+  }
+}
+
+prop05 <- numeric(0)
+for (i in 7:13){
+  prop05 <- c(prop05,sum(test[,i])/length(which(abs(test$score.diff05) == i-6)))
+}
+
+dat04 <- ndat0809[ndat0809$period != 4 | (ndat0809$period == 4 & ndat0809$time > strptime("04:00","%M:%S")),]
+score04 <- tapply(dat04$points,list(dat04$team,dat04$gameno),sum)
+
+team04 <- matrix(0,1176,2)
+for (i in 1:1176){
+  for (j in 1:31){
+    if (!is.na(score04[j,i]) && score04[j,i] != 0)
+      if (team04[i,1] == 0)
+        team04[i,1] <- score04[j,i]
+    else
+      team04[i,2] <- score04[j,i]
+  }
+}
+
+test <- cbind(teamf,team04)
+test <- data.frame(test)
+test$score.diff04 <- test$X3-test$X4
+test$score.diff <- test$X1-test$X2
+
+for (k in 1:7){
+  for (i in 1:1176){
+    if ((test$score.diff[i] > 0 & test$score.diff04[i] == -k) | (test$score.diff[i] < 0 & test$score.diff04[i] == k))
+      test[i,k+6] <- 1
+    else
+      test[i,k+6] <- 0
+  }
+}
+
+prop04 <- numeric(0)
+for (i in 7:13){
+  prop04 <- c(prop04,sum(test[,i])/length(which(abs(test$score.diff04) == i-6)))
+}
+
+dat03 <- ndat0809[ndat0809$period != 4 | (ndat0809$period == 4 & ndat0809$time > strptime("03:00","%M:%S")),]
+score03 <- tapply(dat03$points,list(dat03$team,dat03$gameno),sum)
+
+team03 <- matrix(0,1176,2)
+for (i in 1:1176){
+  for (j in 1:31){
+    if (!is.na(score03[j,i]) && score03[j,i] != 0)
+      if (team03[i,1] == 0)
+        team03[i,1] <- score03[j,i]
+    else
+      team03[i,2] <- score03[j,i]
+  }
+}
+
+test <- cbind(teamf,team03)
+test <- data.frame(test)
+test$score.diff03 <- test$X3-test$X4
+test$score.diff <- test$X1-test$X2
+
+for (k in 1:7){
+  for (i in 1:1176){
+    if ((test$score.diff[i] > 0 & test$score.diff03[i] == -k) | (test$score.diff[i] < 0 & test$score.diff03[i] == k))
+      test[i,k+6] <- 1
+    else
+      test[i,k+6] <- 0
+  }
+}
+
+prop03 <- numeric(0)
+for (i in 7:13){
+  prop03 <- c(prop03,sum(test[,i])/length(which(abs(test$score.diff03) == i-6)))
+}
+
+
+
+dat02 <- ndat0809[ndat0809$period != 4 | (ndat0809$period == 4 & ndat0809$time > strptime("02:00","%M:%S")),]
+score02 <- tapply(dat02$points,list(dat02$team,dat02$gameno),sum)
+
+team02 <- matrix(0,1176,2)
+for (i in 1:1176){
+  for (j in 1:31){
+    if (!is.na(score02[j,i]) && score02[j,i] != 0)
+      if (team02[i,1] == 0)
+        team02[i,1] <- score02[j,i]
+    else
+      team02[i,2] <- score02[j,i]
+  }
+}
+
+test <- cbind(teamf,team02)
+test <- data.frame(test)
+test$score.diff02 <- test$X3-test$X4
+test$score.diff <- test$X1-test$X2
+
+for (k in 1:7){
+  for (i in 1:1176){
+    if ((test$score.diff[i] > 0 & test$score.diff02[i] == -k) | (test$score.diff[i] < 0 & test$score.diff02[i] == k))
+      test[i,k+6] <- 1
+    else
+      test[i,k+6] <- 0
+  }
+}
+
+prop02 <- numeric(0)
+for (i in 7:13){
+  prop02 <- c(prop02,sum(test[,i])/length(which(abs(test$score.diff02) == i-6)))
+}
+
+dat01 <- ndat0809[ndat0809$period != 4 | (ndat0809$period == 4 & ndat0809$time > strptime("01:00","%M:%S")),]
+score01 <- tapply(dat01$points,list(dat01$team,dat01$gameno),sum)
+
+team01 <- matrix(0,1176,2)
+for (i in 1:1176){
+  for (j in 1:31){
+    if (!is.na(score01[j,i]) && score01[j,i] != 0)
+      if (team01[i,1] == 0)
+        team01[i,1] <- score01[j,i]
+    else
+      team01[i,2] <- score01[j,i]
+  }
+}
+
+test <- cbind(teamf,team01)
+test <- data.frame(test)
+test$score.diff01 <- test$X3-test$X4
+test$score.diff <- test$X1-test$X2
+
+for (k in 1:7){
+  for (i in 1:1176){
+    if ((test$score.diff[i] > 0 & test$score.diff01[i] == -k) | (test$score.diff[i] < 0 & test$score.diff01[i] == k))
+      test[i,k+6] <- 1
+    else
+      test[i,k+6] <- 0
+  }
+}
+
+prop01 <- numeric(0)
+for (i in 7:13){
+  prop01 <- c(prop01,sum(test[,i])/length(which(abs(test$score.diff01) == i-6)))
+}
+
+# Make a plot of the proportions
+plot(prop06,main="Proportion of trailing team winning the game",xlab="Score Difference",ylab="Proportion of games won",ylim=c(0,0.6))
+lines(prop07,col="black")
+points(prop07)
+lines(prop06,col="green")
+lines(prop05,col="red")
+points(prop05)
+lines(prop04,col="blue")
+points(prop04)
+lines(prop03,col="yellow")
+points(prop03)
+lines(prop02,col="orange")
+points(prop02)
+lines(prop01,col="purple")
+points(prop01)
+legend("topright",legend=c(1,2,3,4,5,6,7),col=c("purple","orange","yellow","blue","red","green","black"),lty=rep(1,7))
+
+
+
+# Further clutch time research
+dat07 <- ndat0809[ndat0809$period != 4 | (ndat0809$period == 4 & ndat0809$time > strptime("07:00","%M:%S")),]
+score07 <- tapply(dat07$points,list(dat07$team,dat07$gameno),sum)
+
+team07 <- matrix(0,1176,2)
+for (i in 1:1176){
+  for (j in 1:31){
+    if (!is.na(score07[j,i]) && score07[j,i] != 0)
+      if (team07[i,1] == 0)
+        team07[i,1] <- score07[j,i]
+    else
+      team07[i,2] <- score07[j,i]
+  }
+}
+
+test <- cbind(teamf,team07)
+test <- data.frame(test)
+test$score.diff07 <- test$X3-test$X4
+test$score.diff <- test$X1-test$X2
+
+# Get the indicators with respective to the cumulative point differences 
+for (k in 1:7){
+  for (i in 1:1176){
+    if ((test$score.diff[i] > 0 & test$score.diff07[i] >= -k & test$score.diff07[i] <= 0) | (test$score.diff[i] < 0 & test$score.diff07[i] <= k & test$score.diff07[i] >= 0))
+      test[i,k+6] <- 1
+    else
+      test[i,k+6] <- 0
+  }
+}
+
+prop07 <- numeric(0)
+for (i in 7:13){
+  prop07 <- c(prop07,sum(test[,i])/length(which(abs(test$score.diff07) <= i-6)))
+}
+
+dat06 <- ndat0809[ndat0809$period != 4 | (ndat0809$period == 4 & ndat0809$time > strptime("06:00","%M:%S")),]
+score06 <- tapply(dat06$points,list(dat06$team,dat06$gameno),sum)
+
+team06 <- matrix(0,1176,2)
+for (i in 1:1176){
+  for (j in 1:31){
+    if (!is.na(score06[j,i]) && score06[j,i] != 0)
+      if (team06[i,1] == 0)
+        team06[i,1] <- score06[j,i]
+    else
+      team06[i,2] <- score06[j,i]
+  }
+}
+
+test <- cbind(teamf,team06)
+test <- data.frame(test)
+test$score.diff06 <- test$X3-test$X4
+test$score.diff <- test$X1-test$X2
+
+for (k in 1:7){
+  for (i in 1:1176){
+    if ((test$score.diff[i] > 0 & test$score.diff06[i] >= -k & test$score.diff06[i] <= 0) | (test$score.diff[i] < 0 & test$score.diff06[i] <= k & test$score.diff06[i] >= 0))
+      test[i,k+6] <- 1
+    else
+      test[i,k+6] <- 0
+  }
+}
+
+prop06 <- numeric(0)
+for (i in 7:13){
+  prop06 <- c(prop06,sum(test[,i])/length(which(abs(test$score.diff06) <= i-6)))
+}
+
+dat05 <- ndat0809[ndat0809$period != 4 | (ndat0809$period == 4 & ndat0809$time > strptime("05:00","%M:%S")),]
+score05 <- tapply(dat05$points,list(dat05$team,dat05$gameno),sum)
+
+team05 <- matrix(0,1176,2)
+for (i in 1:1176){
+  for (j in 1:31){
+    if (!is.na(score05[j,i]) && score05[j,i] != 0)
+      if (team05[i,1] == 0)
+        team05[i,1] <- score05[j,i]
+    else
+      team05[i,2] <- score05[j,i]
+  }
+}
+
+test <- cbind(teamf,team05)
+test <- data.frame(test)
+test$score.diff05 <- test$X3-test$X4
+test$score.diff <- test$X1-test$X2
+
+for (k in 1:7){
+  for (i in 1:1176){
+    if ((test$score.diff[i] > 0 & test$score.diff05[i] >= -k & test$score.diff05[i] <= 0) | (test$score.diff[i] < 0 & test$score.diff05[i] <= k & test$score.diff05[i] >= 0))
+      test[i,k+6] <- 1
+    else
+      test[i,k+6] <- 0
+  }
+}
+
+prop05 <- numeric(0)
+for (i in 7:13){
+  prop05 <- c(prop05,sum(test[,i])/length(which(abs(test$score.diff05) <= i-6)))
+}
+
+dat04 <- ndat0809[ndat0809$period != 4 | (ndat0809$period == 4 & ndat0809$time > strptime("04:00","%M:%S")),]
+score04 <- tapply(dat04$points,list(dat04$team,dat04$gameno),sum)
+
+team04 <- matrix(0,1176,2)
+for (i in 1:1176){
+  for (j in 1:31){
+    if (!is.na(score04[j,i]) && score04[j,i] != 0)
+      if (team04[i,1] == 0)
+        team04[i,1] <- score04[j,i]
+    else
+      team04[i,2] <- score04[j,i]
+  }
+}
+
+test <- cbind(teamf,team04)
+test <- data.frame(test)
+test$score.diff04 <- test$X3-test$X4
+test$score.diff <- test$X1-test$X2
+
+for (k in 1:7){
+  for (i in 1:1176){
+    if ((test$score.diff[i] > 0 & test$score.diff04[i] >= -k & test$score.diff04[i] <= 0) | (test$score.diff[i] < 0 & test$score.diff04[i] <= k & test$score.diff04[i] >= 0))
+      test[i,k+6] <- 1
+    else
+      test[i,k+6] <- 0
+  }
+}
+
+prop04 <- numeric(0)
+for (i in 7:13){
+  prop04 <- c(prop04,sum(test[,i])/length(which(abs(test$score.diff04) <= i-6)))
+}
+
+dat03 <- ndat0809[ndat0809$period != 4 | (ndat0809$period == 4 & ndat0809$time > strptime("03:00","%M:%S")),]
+score03 <- tapply(dat03$points,list(dat03$team,dat03$gameno),sum)
+
+team03 <- matrix(0,1176,2)
+for (i in 1:1176){
+  for (j in 1:31){
+    if (!is.na(score03[j,i]) && score03[j,i] != 0)
+      if (team03[i,1] == 0)
+        team03[i,1] <- score03[j,i]
+    else
+      team03[i,2] <- score03[j,i]
+  }
+}
+
+test <- cbind(teamf,team03)
+test <- data.frame(test)
+test$score.diff03 <- test$X3-test$X4
+test$score.diff <- test$X1-test$X2
+
+for (k in 1:7){
+  for (i in 1:1176){
+    if ((test$score.diff[i] > 0 & test$score.diff03[i] >= -k & test$score.diff03[i] <= 0) | (test$score.diff[i] < 0 & test$score.diff03[i] <= k & test$score.diff03[i] >= 0))
+      test[i,k+6] <- 1
+    else
+      test[i,k+6] <- 0
+  }
+}
+
+prop03 <- numeric(0)
+for (i in 7:13){
+  prop03 <- c(prop03,sum(test[,i])/length(which(abs(test$score.diff03) <= i-6)))
+}
+
+
+
+dat02 <- ndat0809[ndat0809$period != 4 | (ndat0809$period == 4 & ndat0809$time > strptime("02:00","%M:%S")),]
+score02 <- tapply(dat02$points,list(dat02$team,dat02$gameno),sum)
+
+team02 <- matrix(0,1176,2)
+for (i in 1:1176){
+  for (j in 1:31){
+    if (!is.na(score02[j,i]) && score02[j,i] != 0)
+      if (team02[i,1] == 0)
+        team02[i,1] <- score02[j,i]
+    else
+      team02[i,2] <- score02[j,i]
+  }
+}
+
+test <- cbind(teamf,team02)
+test <- data.frame(test)
+test$score.diff02 <- test$X3-test$X4
+test$score.diff <- test$X1-test$X2
+
+for (k in 1:7){
+  for (i in 1:1176){
+    if ((test$score.diff[i] > 0 & test$score.diff02[i] >= -k & test$score.diff02[i] <= 0) | (test$score.diff[i] < 0 & test$score.diff02[i] <= k & test$score.diff02[i] >= 0))
+      test[i,k+6] <- 1
+    else
+      test[i,k+6] <- 0
+  }
+}
+
+prop02 <- numeric(0)
+for (i in 7:13){
+  prop02 <- c(prop02,sum(test[,i])/length(which(abs(test$score.diff02) <= i-6)))
+}
+
+dat01 <- ndat0809[ndat0809$period != 4 | (ndat0809$period == 4 & ndat0809$time > strptime("01:00","%M:%S")),]
+score01 <- tapply(dat01$points,list(dat01$team,dat01$gameno),sum)
+
+team01 <- matrix(0,1176,2)
+for (i in 1:1176){
+  for (j in 1:31){
+    if (!is.na(score01[j,i]) && score01[j,i] != 0)
+      if (team01[i,1] == 0)
+        team01[i,1] <- score01[j,i]
+    else
+      team01[i,2] <- score01[j,i]
+  }
+}
+
+test <- cbind(teamf,team01)
+test <- data.frame(test)
+test$score.diff01 <- test$X3-test$X4
+test$score.diff <- test$X1-test$X2
+
+for (k in 1:7){
+  for (i in 1:1176){
+    if ((test$score.diff[i] > 0 & test$score.diff01[i] >= -k & test$score.diff01[i] <= 0) | (test$score.diff[i] < 0 & test$score.diff01[i] <= k & test$score.diff01[i] >= 0))
+      test[i,k+6] <- 1
+    else
+      test[i,k+6] <- 0
+  }
+}
+
+prop01 <- numeric(0)
+for (i in 7:13){
+  prop01 <- c(prop01,sum(test[,i])/length(which(abs(test$score.diff01) <= i-6)))
+}
+
+plot(prop06,main="Proportion of trailing team winning the game",xlab="Score Difference",ylab="Proportion of games won",ylim=c(0,0.7))
+lines(prop07,col="black")
+points(prop07)
+lines(prop06,col="green")
+lines(prop05,col="red")
+points(prop05)
+lines(prop04,col="blue")
+points(prop04)
+lines(prop03,col="yellow")
+points(prop03)
+lines(prop02,col="orange")
+points(prop02)
+lines(prop01,col="purple")
+points(prop01)
+legend("topright",legend=c(1,2,3,4,5,6,7),col=c("purple","orange","yellow","blue","red","green","black"),lty=rep(1,7))
